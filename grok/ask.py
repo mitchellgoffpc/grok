@@ -1,7 +1,4 @@
-import os
-import json
-import requests
-from .query import query
+from grok.query import query
 
 def ask(args):
   message = ' '.join(args.question)

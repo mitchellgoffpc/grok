@@ -1,8 +1,7 @@
 import os
 import json
 import hashlib
-from tqdm import tqdm
-from .query import query_with_prompt
+from grok.query import query_with_prompt
 
 # Helper functions
 
@@ -19,7 +18,7 @@ def list_files(path):
     os.path.join(root[len(path+'/'):], file)
       for root, dirs, files in os.walk(path)
       for file in files
-      if '/.' not in root]
+      if '/.' not in root and not file.startswith('.')]
 
 def get_expected_checksums(project_root):
   try:
@@ -28,17 +27,18 @@ def get_expected_checksums(project_root):
   except FileNotFoundError:
     return {}
 
-def get_checksum(data):
-  return hashlib.md5(data.encode('utf-8')).hexdigest()
+def get_checksum(fn):
+  with open(fn, 'rb') as f:
+    return hashlib.md5(f.read()).hexdigest()
 
-def get_summary(fn, data):
-  print(fn)
-  return query_with_prompt('scan', fn=fn, contents=data)
+def get_summary(fn):
+  with open(fn) as f:
+    return query_with_prompt('scan', fn=fn, contents=f.read())
 
 
 # Main function
 
-def scan(args):
+def scan(_):
   project_root = get_project_root()
   if project_root is None:
     project_root = os.getcwd()
@@ -49,18 +49,16 @@ def scan(args):
 
   files = list_files(project_root)
   checksums = get_expected_checksums(project_root)
-  mismatched_files = [f for f in files if get_checksum(f) != checksums.get(f)]
+  mismatched_files = [fn for fn in files if get_checksum(fn) != checksums.get(fn)]
 
   # Scan mismatched files
   print(f"Scanning {len(mismatched_files)} files ...")
 
-  summaries = {}
-  for i, fn in enumerate(mismatched_files):
-    with open(fn) as f:
-      data = f.read()
-    checksums[fn] = get_checksum(data)
-    summary = get_summary(fn, data)
+  for fn in mismatched_files:
+    print(fn)
+    checksums[fn] = get_checksum(fn)
+    summary = get_summary(fn)
     with open(os.path.join(project_root, '.grok', 'index', fn.replace('/', '__')), 'w') as f:
       f.write(summary)
     with open(os.path.join(project_root, '.grok', 'checksums.json'), 'w') as f:
-      json.dump(checksums, f)
+      json.dump(checksums, f, indent=2)
