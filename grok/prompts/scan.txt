@@ -1,0 +1,9 @@
+Your task is to summarize a file.
+If this file contains any code, please provide a short one-or-two sentence description for each function, class, and method contained in the file.
+Otherwise, if this is a text or markdown file, or some other type of file which does not contain code, please respond with "No code".
+
+The following are the contents of the file:
+
+```
+{contents}
+```

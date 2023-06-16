@@ -2,6 +2,12 @@ import os
 import json
 import requests
 
+def query_with_prompt(name, **kwargs):
+  with open(os.path.join(os.path.dirname(__file__), 'prompts', f'{name}.txt')) as f:
+    prompt = f.read()
+    prompt = prompt.format(**kwargs)
+  return query(prompt)
+
 def query(message, model='gpt-3.5-turbo'):
   api_key = os.getenv('OPENAI_API_KEY')
 
