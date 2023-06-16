@@ -15,10 +15,10 @@ def get_project_root():
 
 def list_files(path):
   return [
-    os.path.join(root[len(path+'/'):], file)
-      for root, dirs, files in os.walk(path)
-      for file in files
-      if '/.' not in root and not file.startswith('.')]
+    os.path.join(root[len(f'{path}/'):], file)
+    for root, dirs, files in os.walk(path)
+    for file in files
+    if '/.' not in root and not file.startswith('.')]
 
 def get_expected_checksums(project_root):
   try:
