@@ -1,9 +1,15 @@
 import os
 import json
 import hashlib
-from grok.query import query_with_prompt
+from ask.query import query
 
 # Helper functions
+
+def query_with_prompt(name, model, **kwargs):
+  with open(os.path.join(os.path.dirname(__file__), 'prompts', f'{name}.txt')) as f:
+    prompt = f.read()
+    prompt = prompt.format(**kwargs)
+  return query(prompt, model)
 
 def get_project_root():
   current_dir = os.getcwd()
@@ -31,14 +37,14 @@ def get_checksum(fn):
   with open(fn, 'rb') as f:
     return hashlib.md5(f.read()).hexdigest()
 
-def get_summary(fn):
+def get_summary(fn, model):
   with open(fn) as f:
-    return query_with_prompt('scan', fn=fn, contents=f.read())
+    return query_with_prompt('scan', model, fn=fn, contents=f.read())
 
 
 # Main function
 
-def scan(_):
+def scan(model):
   project_root = get_project_root()
   if project_root is None:
     project_root = os.getcwd()
@@ -57,7 +63,7 @@ def scan(_):
   for fn in mismatched_files:
     print(fn)
     checksums[fn] = get_checksum(fn)
-    summary = get_summary(fn)
+    summary = get_summary(fn, model)
     with open(os.path.join(project_root, '.grok', 'index', fn.replace('/', '__')), 'w') as f:
       f.write(summary)
     with open(os.path.join(project_root, '.grok', 'checksums.json'), 'w') as f:

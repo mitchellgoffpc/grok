@@ -1,6 +1,5 @@
-from grok.query import query
+from ask.query import query
 
-def ask(args):
-  message = ' '.join(args.question)
-  response = query(message, model=args.model)
+def ask(message, model):
+  response = query(message, model)
   print(response)
